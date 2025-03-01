@@ -37,8 +37,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/imams/{imam}', [AdminController::class, 'destroyImam'])->name('imams.destroy');
     
     // Imam-Masjid assignments
-    Route::post('/imams/{imam}/masjids', [AdminController::class, 'assignMasjid'])->name('imams.assign');
-    Route::delete('/imams/{imam}/masjids/{masjid}', [AdminController::class, 'unassignMasjid'])->name('imams.unassign');
+    Route::post('/imams/{imam}/masjids', [AdminController::class, 'assignImamToMasjid'])->name('imams.assign');
+    Route::delete('/imams/{imam}/masjids/{masjid}', [AdminController::class, 'unassignImamFromMasjid'])->name('imams.unassign');
 });
 
 // Imam routes

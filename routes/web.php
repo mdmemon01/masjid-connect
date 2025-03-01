@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ImamController;
 
 // Public routes
 Route::get('/', function () {
@@ -41,10 +42,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/imams/{imam}/masjids/{masjid}', [AdminController::class, 'unassignImamFromMasjid'])->name('imams.unassign');
 });
 
-// Imam routes
+
+
+// Imam routes section
 Route::middleware(['auth', 'imam'])->prefix('imam')->name('imam.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('imam.dashboard');
-    })->name('dashboard');
-    // We'll add more imam routes later
+    Route::get('/dashboard', [ImamController::class, 'dashboard'])->name('dashboard');
+    
+    // Prayer Times routes
+    Route::get('/masjids/{masjid}/prayer-times', [ImamController::class, 'prayerTimes'])->name('prayer-times');
+    Route::get('/masjids/{masjid}/prayer-times/create', [ImamController::class, 'createPrayerTime'])->name('prayer-times.create');
+    Route::post('/masjids/{masjid}/prayer-times', [ImamController::class, 'storePrayerTime'])->name('prayer-times.store');
+    Route::get('/masjids/{masjid}/prayer-times/{prayerTime}/edit', [ImamController::class, 'editPrayerTime'])->name('prayer-times.edit');
+    Route::put('/masjids/{masjid}/prayer-times/{prayerTime}', [ImamController::class, 'updatePrayerTime'])->name('prayer-times.update');
+    Route::delete('/masjids/{masjid}/prayer-times/{prayerTime}', [ImamController::class, 'destroyPrayerTime'])->name('prayer-times.destroy');
 });

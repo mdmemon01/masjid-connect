@@ -54,26 +54,26 @@
             </div>
             
             <nav class="space-y-1.5">
-                <a href="#" class="block py-2.5 px-4 rounded bg-white/20 font-medium">
-                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                </a>
-                <a href="#" class="block py-2.5 px-4 rounded sidebar-item-hover transition">
-                    <i class="fas fa-mosque mr-2"></i> Manage Masjids
-                </a>
-                <a href="#" class="block py-2.5 px-4 rounded sidebar-item-hover transition">
-                    <i class="fas fa-users mr-2"></i> Manage Imams
-                </a>
-                <a href="#" class="block py-2.5 px-4 rounded sidebar-item-hover transition">
-                    <i class="fas fa-home mr-2"></i> Visit Homepage
-                </a>
-                
-                <form method="POST" action="#" class="mt-10">
-                    @csrf
-                    <button type="submit" class="w-full text-left block py-2.5 px-4 rounded sidebar-item-hover transition">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                    </button>
-                </form>
-            </nav>
+    <a href="{{ route('admin.dashboard') }}" class="block py-2.5 px-4 rounded bg-white/20 font-medium">
+        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+    </a>
+    <a href="{{ route('admin.masjids') }}" class="block py-2.5 px-4 rounded sidebar-item-hover transition">
+        <i class="fas fa-mosque mr-2"></i> Manage Masjids
+    </a>
+    <a href="{{ route('admin.imams') }}" class="block py-2.5 px-4 rounded sidebar-item-hover transition">
+        <i class="fas fa-users mr-2"></i> Manage Imams
+    </a>
+    <a href="{{ route('home') }}" class="block py-2.5 px-4 rounded sidebar-item-hover transition" target="_blank">
+        <i class="fas fa-home mr-2"></i> Visit Homepage
+    </a>
+    
+    <form method="POST" action="{{ route('logout') }}" class="mt-10">
+        @csrf
+        <button type="submit" class="w-full text-left block py-2.5 px-4 rounded sidebar-item-hover transition">
+            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+        </button>
+    </form>
+</nav>
             
             <!-- Branding Footer -->
             <div class="mt-auto pt-10 text-center text-xs text-green-100 opacity-75 hidden md:block">
@@ -144,10 +144,12 @@
     
               <!-- Recent Masjids - Add proper table structure -->
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-    <div class="py-3 px-4 md:px-6 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center">
-        <h3 class="text-lg font-semibold text-gray-800">Recently Added Masjids</h3>
-        <a href="#" class="text-sm text-green-600 hover:underline mt-1 sm:mt-0">View All</a>
-    </div>
+
+<div class="py-3 px-4 md:px-6 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+    <h3 class="text-lg font-semibold text-gray-800">Recently Added Masjids</h3>
+    <a href="{{ route('admin.masjids') }}" class="text-sm text-green-600 hover:underline mt-1 sm:mt-0">View All</a>
+</div>
+
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -165,9 +167,9 @@
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $masjid->location ?? 'Not specified' }}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $masjid->imams->count() }}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm">
-                        <a href="#" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
-                        <a href="#" class="text-green-600 hover:text-green-900">View</a>
-                    </td>
+    <a href="{{ route('admin.masjids.edit', $masjid) }}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
+    <a href="{{ route('admin.masjids.show', $masjid) }}" class="text-green-600 hover:text-green-900">View</a>
+</td>  
                 </tr>
                 @empty
                 <tr>
@@ -182,10 +184,10 @@
                 
                 <!-- Recent Imams - Add proper table structure -->
 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-    <div class="py-3 px-4 md:px-6 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center">
-        <h3 class="text-lg font-semibold text-gray-800">Active Imams</h3>
-        <a href="#" class="text-sm text-green-600 hover:underline mt-1 sm:mt-0">View All</a>
-    </div>
+<div class="py-3 px-4 md:px-6 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+    <h3 class="text-lg font-semibold text-gray-800">Active Imams</h3>
+    <a href="{{ route('admin.imams') }}" class="text-sm text-green-600 hover:underline mt-1 sm:mt-0">View All</a>
+</div>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -203,9 +205,9 @@
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $imam->email }}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $imam->masjids->count() }}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm">
-                        <a href="#" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
-                        <a href="#" class="text-green-600 hover:text-green-900">View</a>
-                    </td>
+    <a href="{{ route('admin.imams.edit', $imam) }}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
+    <a href="{{ route('admin.imams.show', $imam) }}" class="text-green-600 hover:text-green-900">View</a>
+</td>
                 </tr>
                 @empty
                 <tr>

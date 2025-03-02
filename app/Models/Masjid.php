@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\PrayerTime;
+use App\Models\Announcement;
 
 class Masjid extends Model
 {
@@ -15,6 +16,14 @@ class Masjid extends Model
         'location',
         'description'
     ];
+
+    /**
+ * Get the announcements for this masjid.
+ */
+public function announcements()
+{
+    return $this->hasMany(Announcement::class);
+}
 
     /**
      * Get the imams associated with this masjid

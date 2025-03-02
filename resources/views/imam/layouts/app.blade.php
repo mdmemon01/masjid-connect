@@ -78,9 +78,21 @@
         @endforeach
     </div>
 </div>
-                <a href="#" class="block py-2.5 px-4 rounded {{ request()->routeIs('imam.announcements*') ? 'bg-white/20 font-medium' : 'sidebar-item-hover transition' }}">
-                    <i class="fas fa-bullhorn mr-2"></i> Announcements
-                </a>
+                <div x-data="{ open: false }" class="relative">
+    <button @click="open = !open" class="w-full flex justify-between items-center py-2.5 px-4 rounded {{ request()->routeIs('imam.announcements*') ? 'bg-white/20 font-medium' : 'sidebar-item-hover transition' }}">
+        <span><i class="fas fa-bullhorn mr-2"></i> Announcements</span>
+        <i class="fas" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+    </button>
+    
+    <div x-show="open" x-transition class="pl-4 space-y-1 mt-1">
+        @foreach(auth()->user()->masjids as $masjid)
+        <a href="{{ route('imam.announcements', $masjid->id) }}" class="block py-2 px-4 rounded text-sm {{ request()->is('imam/masjids/'.$masjid->id.'/announcements*') ? 'bg-white/10 font-medium' : 'sidebar-item-hover transition' }}">
+            {{ $masjid->name }}
+        </a>
+        @endforeach
+    </div>
+</div>
+                
                 <a href="#" class="block py-2.5 px-4 rounded {{ request()->routeIs('imam.events*') ? 'bg-white/20 font-medium' : 'sidebar-item-hover transition' }}">
                     <i class="fas fa-calendar-alt mr-2"></i> Events
                 </a>

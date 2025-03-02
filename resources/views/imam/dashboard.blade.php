@@ -143,48 +143,82 @@
 
 
 
-    <!-- Recent Announcements -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold">Recent Announcements</h3>
-            <button class="text-sm text-green-600 hover:text-green-800">Add New</button>
-        </div>
-        <div class="space-y-4">
-            <div class="border-b pb-4">
-                <h4 class="font-medium">Ramadan Preparations</h4>
-                <p class="text-sm text-gray-600 my-1">We need volunteers to help prepare for upcoming Ramadan events.</p>
-                <div class="flex justify-between items-center mt-2">
-                    <span class="text-xs text-gray-500">Posted 2 days ago</span>
-                    <div class="flex space-x-2">
-                        <button class="text-blue-500 hover:text-blue-700 text-sm">Edit</button>
-                        <button class="text-red-500 hover:text-red-700 text-sm">Delete</button>
-                    </div>
-                </div>
+    <!-- Update the Announcements section -->
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Recent Announcements</h3>
+        @if($masjidCount > 0)
+            <div class="flex items-center">
+                <select id="masjid-selector-announcements" class="mr-2 text-sm border-gray-300 rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50">
+                    <option value="all">All Masjids</option>
+                    @foreach($assignedMasjids as $masjid)
+                        <option value="{{ $masjid->id }}">{{ $masjid->name }}</option>
+                    @endforeach
+                </select>
+                <a href="{{ route('imam.announcements.create', $assignedMasjids->first()->id ?? 0) }}" class="text-sm text-green-600 hover:text-green-800">
+                    <i class="fas fa-plus-circle"></i> Add New
+                </a>
             </div>
-            <div class="border-b pb-4">
-                <h4 class="font-medium">Weekly Quran Classes</h4>
-                <p class="text-sm text-gray-600 my-1">Registration is now open for the weekly Quran classes starting next month.</p>
-                <div class="flex justify-between items-center mt-2">
-                    <span class="text-xs text-gray-500">Posted 5 days ago</span>
-                    <div class="flex space-x-2">
-                        <button class="text-blue-500 hover:text-blue-700 text-sm">Edit</button>
-                        <button class="text-red-500 hover:text-red-700 text-sm">Delete</button>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <h4 class="font-medium">Community Iftar</h4>
-                <p class="text-sm text-gray-600 my-1">Join us for a community iftar event on Friday at 7:00 PM.</p>
-                <div class="flex justify-between items-center mt-2">
-                    <span class="text-xs text-gray-500">Posted 1 week ago</span>
-                    <div class="flex space-x-2">
-                        <button class="text-blue-500 hover:text-blue-700 text-sm">Edit</button>
-                        <button class="text-red-500 hover:text-red-700 text-sm">Delete</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endif
     </div>
+    
+    <div class="space-y-4">
+        @forelse($recentAnnouncements as $announcement)
+            <div class="border-b pb-4">
+                <div class="flex items-center mb-1">
+                    <h4 class="font-medium">{{ $announcement->title }}</h4>
+                    <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        {{ $announcement->category == 'Urgent' ? 'bg-red-100 text-red-800' : 
+                          ($announcement->category == 'Event' ? 'bg-blue-100 text-blue-800' : 
+                          'bg-green-100 text-green-800') }}">
+                        {{ $announcement->category ?? 'General' }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-600 my-1">{{ Str::limit($announcement->content, 100) }}</p>
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-xs text-gray-500">
+                        {{ $announcement->created_at->diffForHumans() }} 
+                        <span class="text-gray-400">|</span> 
+                        {{ $assignedMasjids->firstWhere('id', $announcement->masjid_id)->name }}
+                    </span>
+                    <div class="flex space-x-2">
+                        <a href="{{ route('imam.announcements.edit', [$announcement->masjid_id, $announcement->id]) }}" class="text-blue-500 hover:text-blue-700 text-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form action="{{ route('imam.announcements.destroy', [$announcement->masjid_id, $announcement->id]) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-500 hover:text-red-700 text-sm" onclick="return confirm('Are you sure you want to delete this announcement?')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="text-center py-6 text-gray-500">
+                <i class="fas fa-bullhorn text-gray-300 text-3xl mb-2"></i>
+                <p>No announcements yet.</p>
+                @if($masjidCount > 0)
+                    <a href="{{ route('imam.announcements.create', $assignedMasjids->first()->id) }}" class="mt-2 inline-block text-green-600 hover:text-green-800 font-medium">
+                        <i class="fas fa-plus-circle mr-1"></i> Create your first announcement
+                    </a>
+                @else
+                    <p class="mt-1 text-sm">You need to be assigned to a masjid first.</p>
+                @endif
+            </div>
+        @endforelse
+    </div>
+
+    @if(count($recentAnnouncements) > 0 && $masjidCount > 0)
+        <div class="mt-4 text-right">
+            <a href="{{ route('imam.announcements', $assignedMasjids->first()->id) }}" class="text-sm text-green-600 hover:text-green-800">
+                View all announcements <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    @endif
+</div>
+    
 </div>
 
 <!-- Coming Soon Features -->
@@ -271,6 +305,25 @@
         
         selector.addEventListener('change', updateVisiblePrayerTimes);
         updateVisiblePrayerTimes(); // Run on page load
+    });
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const announcementSelector = document.getElementById('masjid-selector-announcements');
+        if (announcementSelector) {
+            announcementSelector.addEventListener('change', function() {
+                const masjidId = this.value;
+                let addNewBtn = document.querySelector('.text-green-600.hover\\:text-green-800');
+                
+                if (masjidId !== 'all' && addNewBtn) {
+                    // Update the "Add New" button URL
+                    addNewBtn.href = "{{ url('imam/masjids') }}/" + masjidId + "/announcements/create";
+                }
+                
+                // For a more advanced implementation, you could use AJAX to fetch 
+                // announcements for the selected masjid or implement client-side filtering
+            });
+        }
     });
 </script>
 @endsection

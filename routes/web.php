@@ -55,4 +55,15 @@ Route::middleware(['auth', 'imam'])->prefix('imam')->name('imam.')->group(functi
     Route::get('/masjids/{masjid}/prayer-times/{prayerTime}/edit', [ImamController::class, 'editPrayerTime'])->name('prayer-times.edit');
     Route::put('/masjids/{masjid}/prayer-times/{prayerTime}', [ImamController::class, 'updatePrayerTime'])->name('prayer-times.update');
     Route::delete('/masjids/{masjid}/prayer-times/{prayerTime}', [ImamController::class, 'destroyPrayerTime'])->name('prayer-times.destroy');
+
+    
+// Announcement routes
+Route::get('/masjids/{masjid}/announcements', [ImamController::class, 'announcements'])->name('announcements');
+Route::get('/masjids/{masjid}/announcements/create', [ImamController::class, 'createAnnouncement'])->name('announcements.create');
+Route::post('/masjids/{masjid}/announcements', [ImamController::class, 'storeAnnouncement'])->name('announcements.store');
+Route::get('/masjids/{masjid}/announcements/{announcement}', [ImamController::class, 'showAnnouncement'])->name('announcements.show');
+Route::get('/masjids/{masjid}/announcements/{announcement}/edit', [ImamController::class, 'editAnnouncement'])->name('announcements.edit');
+Route::put('/masjids/{masjid}/announcements/{announcement}', [ImamController::class, 'updateAnnouncement'])->name('announcements.update');
+Route::delete('/masjids/{masjid}/announcements/{announcement}', [ImamController::class, 'destroyAnnouncement'])->name('announcements.destroy');
+
 });

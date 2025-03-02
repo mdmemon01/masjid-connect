@@ -6,13 +6,11 @@ use App\Models\Masjid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PrayerTime;
+use App\Models\Announcement;
+use Illuminate\Support\Facades\Storage;
 
 class ImamController extends Controller
 {
-    /**
-     * Display the imam dashboard
-     */
-    
 
 /**
  * Display the prayer times for a masjid
@@ -180,12 +178,199 @@ public function dashboard()
         }
     }
     
+    // Get recent announcements from all assigned masjids
+    $recentAnnouncements = [];
+    if ($masjidCount > 0) {
+        $masjidIds = $assignedMasjids->pluck('id')->toArray();
+        $recentAnnouncements = Announcement::whereIn('masjid_id', $masjidIds)
+            ->where('is_published', true)
+            ->where(function($query) {
+                $query->whereNull('expiry_date')
+                    ->orWhere('expiry_date', '>=', now()->format('Y-m-d'));
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+    }
+    
     // Pass data to the view
     return view('imam.dashboard', compact(
         'imam',
         'assignedMasjids',
         'masjidCount',
-        'todaysPrayerTimes'
+        'todaysPrayerTimes',
+        'recentAnnouncements'
     ));
 }
+
+//Display a listing of announcements
+
+public function announcements($masjidId)
+{
+    $imam = Auth::user();
+    
+    // Check if imam is assigned to this masjid
+    $masjid = $imam->masjids()->findOrFail($masjidId);
+    
+    // Get announcements for this masjid
+    $announcements = $masjid->announcements()
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+    
+    return view('imam.announcements.index', compact('masjid', 'announcements'));
+}
+
+/**
+ * Show the form for creating a new announcement
+ */
+public function createAnnouncement($masjidId)
+{
+    $imam = Auth::user();
+    
+    // Check if imam is assigned to this masjid
+    $masjid = $imam->masjids()->findOrFail($masjidId);
+    
+    // Categories for announcements
+    $categories = ['General', 'Event', 'Urgent', 'Classes', 'Community'];
+    
+    return view('imam.announcements.create', compact('masjid', 'categories'));
+}
+
+/**
+ * Store a newly created announcement
+ */
+public function storeAnnouncement(Request $request, $masjidId)
+{
+    $imam = Auth::user();
+    
+    // Check if imam is assigned to this masjid
+    $masjid = $imam->masjids()->findOrFail($masjidId);
+    
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+        'image' => 'nullable|image|max:2048', // max 2MB
+        'is_published' => 'boolean',
+        'publish_date' => 'required|date',
+        'expiry_date' => 'nullable|date|after_or_equal:publish_date',
+        'category' => 'nullable|string|max:50',
+    ]);
+    
+    $announcement = new Announcement($validated);
+    
+    // Handle the image upload if present
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('announcements', 'public');
+        $announcement->image_path = $path;
+    }
+    
+    $announcement->masjid_id = $masjid->id;
+    $announcement->is_published = $request->has('is_published');
+    $announcement->save();
+    
+    return redirect()
+        ->route('imam.announcements', $masjid->id)
+        ->with('success', 'Announcement created successfully!');
+}
+
+/**
+ * Show a specific announcement
+ */
+public function showAnnouncement($masjidId, $announcementId)
+{
+    $imam = Auth::user();
+    
+    // Check if imam is assigned to this masjid
+    $masjid = $imam->masjids()->findOrFail($masjidId);
+    
+    $announcement = $masjid->announcements()->findOrFail($announcementId);
+    
+    return view('imam.announcements.show', compact('masjid', 'announcement'));
+}
+
+/**
+ * Show the form for editing an announcement
+ */
+public function editAnnouncement($masjidId, $announcementId)
+{
+    $imam = Auth::user();
+    
+    // Check if imam is assigned to this masjid
+    $masjid = $imam->masjids()->findOrFail($masjidId);
+    
+    $announcement = $masjid->announcements()->findOrFail($announcementId);
+    
+    // Categories for announcements
+    $categories = ['General', 'Event', 'Urgent', 'Classes', 'Community'];
+    
+    return view('imam.announcements.edit', compact('masjid', 'announcement', 'categories'));
+}
+
+/**
+ * Update the specified announcement
+ */
+public function updateAnnouncement(Request $request, $masjidId, $announcementId)
+{
+    $imam = Auth::user();
+    
+    // Check if imam is assigned to this masjid
+    $masjid = $imam->masjids()->findOrFail($masjidId);
+    
+    $announcement = $masjid->announcements()->findOrFail($announcementId);
+    
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+        'image' => 'nullable|image|max:2048', // max 2MB
+        'is_published' => 'boolean',
+        'publish_date' => 'required|date',
+        'expiry_date' => 'nullable|date|after_or_equal:publish_date',
+        'category' => 'nullable|string|max:50',
+    ]);
+    
+    // Handle the image upload if present
+    if ($request->hasFile('image')) {
+        // Delete old image if exists
+        if ($announcement->image_path) {
+            Storage::disk('public')->delete($announcement->image_path);
+        }
+        
+        $path = $request->file('image')->store('announcements', 'public');
+        $validated['image_path'] = $path;
+    }
+    
+    $announcement->fill($validated);
+    $announcement->is_published = $request->has('is_published');
+    $announcement->save();
+    
+    return redirect()
+        ->route('imam.announcements', $masjid->id)
+        ->with('success', 'Announcement updated successfully!');
+}
+
+/**
+ * Remove the specified announcement
+ */
+public function destroyAnnouncement($masjidId, $announcementId)
+{
+    $imam = Auth::user();
+    
+    // Check if imam is assigned to this masjid
+    $masjid = $imam->masjids()->findOrFail($masjidId);
+    
+    $announcement = $masjid->announcements()->findOrFail($announcementId);
+    
+    // Delete image if exists
+    if ($announcement->image_path) {
+        Storage::disk('public')->delete($announcement->image_path);
+    }
+    
+    $announcement->delete();
+    
+    return redirect()
+        ->route('imam.announcements', $masjid->id)
+        ->with('success', 'Announcement deleted successfully!');
+}
+
+
 }
